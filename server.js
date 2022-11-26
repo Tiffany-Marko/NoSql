@@ -58,6 +58,25 @@ app.delete ("/api/users/:userId/friends/:friendId", async (req, res)=>{
     res.json(user)
     })
 
+    app.post("/api/thoughts/:thoughtId/reactions", async (req, res)=>{
+        console.log("Create reaction")
+        const thoughtId = req.params.thoughtId
+        const reaction = req.body
+        const thought = await Thought.findByIdAndUpdate(thoughtId,{$push:{reactions:reaction}})
+        console.log(thought)
+        res.json(thought)
+
+    })
+    app.delete ("/api/thoughts/:thoughtId/reactions/:reactionId", async (req, res)=>{
+        const thoughtId = req.params.thoughtId
+        const reactionId = req.params.reactionId
+        console.log("Reaction id: ", reactionId);
+         const thought = await Thought.findByIdAndUpdate(thoughtId, {$pull:{reactions:{reactionId}}})
+ 
+        console.log(thought) 
+        res.json(thought)
+        })
+
     app.get("/api/thoughts", async (req, res)=>{
         const thoughts = await Thought.find({})
         console.log(thoughts)
@@ -70,13 +89,31 @@ app.delete ("/api/users/:userId/friends/:friendId", async (req, res)=>{
             console.log(thought)
             res.json(thought)
         })
+
         app.post("/api/thoughts/create", async (req, res) =>{
             const newThought = req.body
+            const username = req.body.username
             const createdAThought = await Thought.create(newThought)
+            const updatedUser= await User.findOneAndUpdate ({username},{$push:{thoughts:createdAThought._id}})
             console.log(createdAThought)
+            console.log(updatedUser)
             res.json(createdAThought)
         
         })
+        app.put("/api/thoughts/:id", async (req, res)=>{
+            const id = req.params.id
+            const update = req.body 
+            const thought = await Thought.findByIdAndUpdate(id,update)
+            console.log(thought)
+            res.json(thought)
+        })
+        app.delete("/api/thoughts/:id", async (req, res)=>{
+            const id = req.params.id
+            const thought = await Thought.findByIdAndDelete(id)
+            console.log(thought)
+            res.json(thought)
+        })
+       
 
 async function connectAndRun(){
 const connection = await mongoose.connect(process.env.mongoConnection)
